@@ -35,10 +35,10 @@ Minimal test example to run a simple calculation
 
 ```
 const config = require('./modules/config')
-const NapCalulator = require('./modules/napCalculator')
+const NapCalculator = require('./modules/napCalculator')
 
 function main() {
-	const nap = new NapCalulator(config)
+	const nap = new NapCalculator(config)
 
 	const result = nap.calculate({
 		// usual wake time (home)
@@ -76,7 +76,12 @@ main()
 The engine can output a human readable summary of nap start/stop time
 
 ```
-Yes, the nap can be placed by modifiying the nap time
+Yes, the nap can be placed by modifying the nap time
 Nap Start Time: 22:45 GMT-7 / 06:45 GMT+1
 Nap End Time: 02:45 GMT-7 / 10:45 GMT+1
 ```
+
+### TODO
+- Move all remaining hard coded configuration values into the config module
+- Implement flight wake time modifier logic if nap time is un-allowed
+- Implement nap time reduction modifier logic if nap time is un-allowed
