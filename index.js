@@ -1,8 +1,8 @@
 const config = require('./modules/config')
-const NapCalulator = require('./modules/napCalculator')
+const NapCalculator = require('./modules/napCalculator')
 
 function main() {
-	const nap = new NapCalulator(config)
+	const nap = new NapCalculator(config)
 
 	const result = nap.calculate({
 		// usual wake time (home)
