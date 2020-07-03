@@ -49,7 +49,9 @@ class NapResult {
 }
 
 NapResult.prototype.toString = function () {
-	let output = this.modified ? '' : 'Yes, the nap can be placed without modifiying the time'
+	let output = this.data.modified
+		? 'Yes, the nap can be placed by modifiying the nap time'
+		: 'Yes, the nap can be placed without modifiying the nap time'
 
 	const napStart = this.data.napStartDT.format('HH:mm')
 	const napEnd = this.data.napEndDT.format('HH:mm')
@@ -72,7 +74,7 @@ NapResult.prototype.toString = function () {
 	this.data.napEndDT.utcOffset(this.data.inputs.destTimeZone)
 	const napEndDestTZ = this.data.napEndDT.format('HH:mm')
 
-	output += `\nNap Start Time: ${napStart} GMT${homeTZOffset} / ${napStartDestTZ} GMT${destTZOffset} `
+	output += `\nNap Start Time: ${napStart} GMT${homeTZOffset} / ${napStartDestTZ} GMT${destTZOffset}`
 	output += `\nNap End Time: ${napEnd} GMT${homeTZOffset} / ${napEndDestTZ} GMT${destTZOffset}`
 
 	this.data.napStartDT.utcOffset(this.data.inputs.homeTimeZone)

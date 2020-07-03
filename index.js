@@ -29,28 +29,8 @@ function main() {
 		flightArrivalTime: '13:00',
 	})
 
-	console.log('--------')
 	result.printDetails(true)
 	console.log(result.toString())
-
-	/*
-	const result2 = nap.calculate({
-		usualWakeTime: '07:30',
-		usualBedTime: '23:00',
-		flightDayWakeTime: '05:00',
-		destWakeTime: '09:00',
-		destBedTime: '23:00',
-		arrivalDayBedTime: '01:30',
-		homeTimeZone: '-07:00',
-		destTimeZone: '-04:00',
-		flightDepartTime: '08:00',
-		flightArrivalTime: '16:00',
-	})
-	*/
-
-	// console.log(result.toString())
-
-	// result2.printDetails()
 }
 
 main()
