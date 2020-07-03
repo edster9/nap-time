@@ -85,3 +85,5 @@ Nap End Time: 02:45 GMT-7 / 10:45 GMT+1
 - Move all remaining hard coded configuration values into the config module
 - Implement flight wake time modifier logic if nap time is un-allowed
 - Implement nap time reduction modifier logic if nap time is un-allowed
+- Better debug tracing output
+- Structured result data vs. string output
