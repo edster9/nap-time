@@ -15,10 +15,8 @@ function main() {
 		preferredWakeTime: '09:00',
 		// preferred bed time (destination)
 		preferredBedTime: '23:00',
-		// preferredBedTime: '17:30',
 		// arrival day earliest bed time
 		arrivalDayBedTime: '01:30',
-		// arrivalDayBedTime: '18:30',
 		// home timezone
 		homeTimeZone: '-07:00',
 		// destination timezone
