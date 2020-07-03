@@ -159,14 +159,20 @@ class NapCalculator {
 		if (this.napLength) {
 			let napMidpointHours = 0
 
+			// create the nap midpoint
 			const napMidpointDuration = this.data.preferredWakeTimeDT.diff(this.data.usualBedTimeDT)
 			napMidpointHours = napMidpointDuration / 1000 / 60 / 60 / 2
 			napMidpointHours -= this.napLength / 2
 
+			// create the nap start and end times
 			napResultData.napStartDT = moment(this.data.usualBedTimeDT)
 			napResultData.napStartDT.add(napMidpointHours, 'h')
 			napResultData.napEndDT = moment(napResultData.napStartDT)
 			napResultData.napEndDT.add(this.napLength, 'h')
+
+			// save the original times
+			napResultData.napOriginalStartDT = moment(napResultData.napStartDT)
+			napResultData.napOriginalEndDT = moment(napResultData.napEndDT)
 
 			// modify the nap if special modifier are present
 			if (modifiers) {
@@ -179,6 +185,8 @@ class NapCalculator {
 					napResultData.napEndDT.subtract(modifiers.napOffset, 'h')
 				}
 			}
+
+			// RUN ALL THE UNALLOWED VALIDATION //
 
 			// 1a) X hours before take off until X hour after take off
 			const napAfterTakeOffDuration = napResultData.napStartDT.diff(this.data.flightDepartTimeDT)
@@ -266,6 +274,8 @@ class NapCalculator {
 				'The traveler must not have a time period of more than 20 hours without sleep',
 			)
 		}
+
+		// END VALIDATIONS //
 
 		// prepare the nap result data object
 		napResultData = {
