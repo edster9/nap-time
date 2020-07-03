@@ -1,0 +1,26 @@
+{
+	"name": "nap-time",
+	"version": "1.0.0",
+	"main": "index.js",
+	"license": "MIT",
+	"scripts": {
+		"start": "node index.js",
+		"test": "mocha"
+	},
+	"dependencies": {
+		"dotenv": "^8.2.0",
+		"lodash": "^4.17.15",
+		"moment": "^2.27.0",
+		"moment-timezone": "^0.5.31"
+	},
+	"devDependencies": {
+		"babel-eslint": "^10.1.0",
+		"eslint": "^7.2.0",
+		"eslint-config-airbnb": "^18.1.0",
+		"eslint-plugin-import": "^2.20.2",
+		"eslint-plugin-jsx-a11y": "^6.2.3",
+		"eslint-plugin-react": "^7.20.0",
+		"eslint-plugin-react-hooks": "^4.0.4",
+		"mocha": "^8.0.1"
+	}
+}
