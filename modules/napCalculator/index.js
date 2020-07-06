@@ -2,10 +2,19 @@ const moment = require('moment')
 const NapResult = require('./napResult')
 
 class NapCalculator {
+	/**
+	 *
+	 * @param {configuration data} config
+	 */
 	constructor(config) {
 		this.config = config
 	}
 
+	/**
+	 * Summary. Run the sleep calculation based the incoming parameters
+	 *
+	 * @param {calculate input object} data
+	 */
 	calculate(data) {
 		this.data = data
 
@@ -108,6 +117,13 @@ class NapCalculator {
 		}
 	}
 
+	/**
+	 * Summary. Calculate the nap time and take into account any modifier passed in
+	 *
+	 * @param {modifiers object} modifiers
+	 *
+	 * @return {napResultData object}
+	 */
 	_getNapResults(modifiers) {
 		let napResultData = {}
 		napResultData.unallowedReasons = []
@@ -118,7 +134,7 @@ class NapCalculator {
 
 		// get the duration of the flight in hours
 		const flightDuration = this.data.flightArrivalTimeDT.diff(this.data.flightDepartTimeDT)
-		this.flightHours = (flightDuration / 1000 / 60 / 60).toFixed(1)
+		this.flightHours = (flightDuration / this.config.msDay).toFixed(1)
 
 		// get the earliest wake time
 		this.wakeupTimeDT =
@@ -139,20 +155,32 @@ class NapCalculator {
 
 		// get the total wakefulness duration in hours
 		const totalWakefulnessDuration = this.bedTimeDT.diff(this.wakeupTimeDT)
-		this.totalWakefulness = (totalWakefulnessDuration / 1000 / 60 / 60).toFixed(1)
+		this.totalWakefulness = (totalWakefulnessDuration / this.config.msDay).toFixed(1)
 
 		// calculate nap length
 		this.napLength = 0
-		if (this.totalWakefulness > 20 && this.totalWakefulness <= 24) {
-			this.napLength = 1
-		} else if (this.totalWakefulness > 24 && this.totalWakefulness <= 28) {
-			this.napLength = 2
-		} else if (this.totalWakefulness > 28 && this.totalWakefulness <= 36) {
-			this.napLength = 4
-		} else if (this.totalWakefulness > 36 && this.totalWakefulness <= 42) {
-			this.napLength = 6
-		} else if (this.totalWakefulness > 42) {
-			this.napLength = 8
+		if (
+			this.totalWakefulness > this.config.naps[0].minWakefulness &&
+			this.totalWakefulness <= this.config.naps[0].maxWakefulness
+		) {
+			this.napLength = this.config.naps[0].length
+		} else if (
+			this.totalWakefulness > this.config.naps[1].minWakefulness &&
+			this.totalWakefulness <= this.config.naps[1].maxWakefulness
+		) {
+			this.napLength = this.config.naps[1].length
+		} else if (
+			this.totalWakefulness > this.config.naps[2].minWakefulness &&
+			this.totalWakefulness <= this.config.naps[2].maxWakefulness
+		) {
+			this.napLength = this.config.naps[2].length
+		} else if (
+			this.totalWakefulness > this.config.naps[3].minWakefulness &&
+			this.totalWakefulness <= this.config.naps[3].maxWakefulness
+		) {
+			this.napLength = this.config.naps[3].length
+		} else if (this.totalWakefulness > this.config.naps[4].minWakefulness) {
+			this.napLength = this.config.naps[4].length
 		}
 
 		// if there is a nap length > 0 then calculate the start and end times
@@ -161,7 +189,7 @@ class NapCalculator {
 
 			// create the nap midpoint
 			const napMidpointDuration = this.data.preferredWakeTimeDT.diff(this.data.usualBedTimeDT)
-			napMidpointHours = napMidpointDuration / 1000 / 60 / 60 / 2
+			napMidpointHours = napMidpointDuration / this.config.msDay / 2
 			napMidpointHours -= this.napLength / 2
 
 			// create the nap start and end times
@@ -190,7 +218,7 @@ class NapCalculator {
 
 			// 1a) X hours before take off until X hour after take off
 			const napAfterTakeOffDuration = napResultData.napStartDT.diff(this.data.flightDepartTimeDT)
-			napResultData.napAfterTakeOff = (napAfterTakeOffDuration / 1000 / 60 / 60).toFixed(1)
+			napResultData.napAfterTakeOff = (napAfterTakeOffDuration / this.config.msDay).toFixed(1)
 
 			if (
 				napResultData.napAfterTakeOff <= this.config.hoursAllowedAfterTakeOff &&
@@ -204,7 +232,7 @@ class NapCalculator {
 
 			// 1b) X hour before landing until X hours after landing
 			const napBeforeArrivalOffDuration = this.data.flightArrivalTimeDT.diff(napResultData.napEndDT)
-			napResultData.napBeforeArrival = (napBeforeArrivalOffDuration / 1000 / 60 / 60).toFixed(1)
+			napResultData.napBeforeArrival = (napBeforeArrivalOffDuration / this.config.msDay).toFixed(1)
 
 			if (
 				napResultData.napBeforeArrival <= this.config.hoursAllowedBeforeLanding &&
@@ -221,50 +249,65 @@ class NapCalculator {
 
 			// get the nap start and nap end offsets from the wake up and sleep times
 			const napStartOffsetDuration = napResultData.napStartDT.diff(this.wakeupTimeDT)
-			napResultData.napStartOffset = (napStartOffsetDuration / 1000 / 60 / 60).toFixed(1)
+			napResultData.napStartOffset = (napStartOffsetDuration / this.config.msDay).toFixed(1)
 
 			const napEndOffsetDuration = this.bedTimeDT.diff(napResultData.napEndDT)
-			napResultData.napEndOffset = (napEndOffsetDuration / 1000 / 60 / 60).toFixed(1)
+			napResultData.napEndOffset = (napEndOffsetDuration / this.config.msDay).toFixed(1)
 
 			// TODO: move all hard coded vars into the config module
 
 			// 2a) A nap length of 1 hour must start at least 4 hours after flight day wake time and end at least 6 hours before arrival day bed time
-			if (this.napLength === 1 && (napResultData.napStartOffset < 4 || napResultData.napEndOffset < 6)) {
+			if (
+				this.napLength === this.config.naps[0].length &&
+				(napResultData.napStartOffset < 4 || napResultData.napEndOffset < 6)
+			) {
 				napResultData.napUnallowed = true
 				napResultData.unallowedReasons.push(
-					'A nap length of 1 hour must start at least 4 hours after flight day wake time and end at least 6 hours before arrival day bed time',
+					`A nap length of ${this.config.naps[0].length} hour must start at least 4 hours after flight day wake time and end at least 6 hours before arrival day bed time`,
 				)
 			}
 
 			// 2b) A nap length of 2 hours must start at least 6 hours after flight day wake time and end at least 8 hours before arrival day bed time
-			if (this.napLength === 2 && (napResultData.napStartOffset < 6 || napResultData.napEndOffset < 8)) {
+			if (
+				this.napLength === this.config.naps[1].length &&
+				(napResultData.napStartOffset < 6 || napResultData.napEndOffset < 8)
+			) {
 				napResultData.napUnallowed = true
 				napResultData.unallowedReasons.push(
-					'A nap length of 2 hours must start at least 6 hours after flight day wake time and end at least 8 hours before arrival day bed time',
+					`A nap length of ${this.config.naps[1].length} hours must start at least 6 hours after flight day wake time and end at least 8 hours before arrival day bed time`,
 				)
 			}
 
 			// 2c) A nap length of 4 hours must start at least 9 hours after flight day wake time and end at least 10 hours before arrival day bed time
-			if (this.napLength === 4 && (napResultData.napStartOffset < 9 || napResultData.napEndOffset < 10)) {
+			if (
+				this.napLength === this.config.naps[2].length &&
+				(napResultData.napStartOffset < 9 || napResultData.napEndOffset < 10)
+			) {
 				napResultData.napUnallowed = true
 				napResultData.unallowedReasons.push(
-					'A nap length of 4 hours must start at least 9 hours after flight day wake time and end at least 10 hours before arrival day bed time',
+					`A nap length of ${this.config.naps[2].length} hours must start at least 9 hours after flight day wake time and end at least 10 hours before arrival day bed time`,
 				)
 			}
 
 			// 2d) A nap length of 6 hours must start at least 12 hours after flight day wake time and end at least 12 hours before arrival day bed time
-			if (this.napLength === 6 && (napResultData.napStartOffset < 12 || napResultData.napEndOffset < 12)) {
+			if (
+				this.napLength === this.config.naps[3].length &&
+				(napResultData.napStartOffset < 12 || napResultData.napEndOffset < 12)
+			) {
 				napResultData.napUnallowed = true
 				napResultData.unallowedReasons.push(
-					'A nap length of 6 hours must start at least 12 hours after flight day wake time and end at least 12 hours before arrival day bed time',
+					`A nap length of ${this.config.naps[3].length} hours must start at least 12 hours after flight day wake time and end at least 12 hours before arrival day bed time`,
 				)
 			}
 
 			// 2e) A nap length of 8 hours must start at least 14 hours after flight day wake time and end at least 12 hours before arrival day bed time
-			if (this.napLength === 8 && (napResultData.napStartOffset < 14 || napResultData.napEndOffset < 12)) {
+			if (
+				this.napLength === this.config.naps[4].length &&
+				(napResultData.napStartOffset < 14 || napResultData.napEndOffset < 12)
+			) {
 				napResultData.napUnallowed = true
 				napResultData.unallowedReasons.push(
-					'A nap length of 8 hours must start at least 14 hours after flight day wake time and end at least 12 hours before arrival day bed time',
+					`A nap length of ${this.config.naps[4].length} hours must start at least 14 hours after flight day wake time and end at least 12 hours before arrival day bed time`,
 				)
 			}
 			// 3) The traveler must not have a time period of more than 20 hours without sleep
@@ -293,6 +336,15 @@ class NapCalculator {
 		return napResultData
 	}
 
+	/**
+	 * Summary. Time string to moment date object
+	 *
+	 * @param {string} 					timeString
+	 * @param {string} 					timeZone
+	 * @param {moment object} 	fromDate
+	 *
+	 * @return {moment object}
+	 */
 	_timeStringToDate(timeString, timeZone, fromDate) {
 		// make sure time is a string
 		if (typeof timeString !== 'string') {
@@ -319,7 +371,7 @@ class NapCalculator {
 			throw `Invalid time format: ${timeString}`
 		}
 
-		// create a datetime object and reset the hours / minutes / seconds
+		// create a date time object and reset the hours / minutes / seconds
 		const dateTime = fromDate ? moment(fromDate) : moment()
 
 		if (timeZone) {
