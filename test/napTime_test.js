@@ -32,7 +32,7 @@ describe('Nap Time', () => {
 		})
 
 		const resultString =
-			'Yes, the nap can be placed without modifiying the nap time\nNap Start Time: 22:00 GMT-7 / 06:00 GMT+1\nNap End Time: 02:00 GMT-7 / 10:00 GMT+1'
+			'Yes, the nap can be placed without modifying the nap time\nNap Start Time: 22:00 GMT-7 / 06:00 GMT+1\nNap End Time: 02:00 GMT-7 / 10:00 GMT+1'
 
 		assert.equal(result.toString(), resultString)
 	})
@@ -62,7 +62,7 @@ describe('Nap Time', () => {
 		})
 
 		const resultString =
-			'Yes, the nap can be placed by modifiying the nap time\nNap Start Time: 22:45 GMT-7 / 06:45 GMT+1\nNap End Time: 02:45 GMT-7 / 10:45 GMT+1'
+			'Yes, the nap can be placed by modifying the nap time\nNap Start Time: 22:45 GMT-7 / 06:45 GMT+1\nNap End Time: 02:45 GMT-7 / 10:45 GMT+1\nOriginal Nap Start Time: 22:00 GMT-7 / 06:45 GMT+1\nOriginal Nap End Time: 02:00 GMT-7 / 10:45 GMT+1'
 
 		assert.equal(result.toString(), resultString)
 	})

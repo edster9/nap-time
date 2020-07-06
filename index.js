@@ -28,6 +28,7 @@ function main() {
 	})
 
 	result.printDetails(true)
+	console.log('--------------')
 	console.log(result.toString())
 }
 

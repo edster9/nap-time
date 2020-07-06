@@ -38,11 +38,11 @@ class NapResult {
 		console.log('total wakefulness hours', this.data.totalWakefulness)
 		console.log('wakeup time', this.data.wakeupTimeDT)
 		console.log('bed time', this.data.bedTimeDT)
-		console.log('nap lenght', this.data.napLength)
+		console.log('nap length', this.data.napLength)
 		console.log('hours to start nap after take off', this.data.napAfterTakeOff)
 		console.log('hours to end nap before arrival', this.data.napBeforeArrival)
 		console.log('hours to start nap from wake up', this.data.napStartOffset)
-		console.log('hours to end nap bfore sleep', this.data.napEndOffset)
+		console.log('hours to end nap before sleep', this.data.napEndOffset)
 		console.log('nap start time', this.data.napStartDT)
 		console.log('nap end time', this.data.napEndDT)
 	}
@@ -50,8 +50,8 @@ class NapResult {
 
 NapResult.prototype.toString = function () {
 	let output = this.data.modified
-		? 'Yes, the nap can be placed by modifiying the nap time'
-		: 'Yes, the nap can be placed without modifiying the nap time'
+		? 'Yes, the nap can be placed by modifying the nap time'
+		: 'Yes, the nap can be placed without modifying the nap time'
 
 	const napStart = this.data.napStartDT.format('HH:mm')
 	const napEnd = this.data.napEndDT.format('HH:mm')
@@ -76,6 +76,14 @@ NapResult.prototype.toString = function () {
 
 	output += `\nNap Start Time: ${napStart} GMT${homeTZOffset} / ${napStartDestTZ} GMT${destTZOffset}`
 	output += `\nNap End Time: ${napEnd} GMT${homeTZOffset} / ${napEndDestTZ} GMT${destTZOffset}`
+
+	if (this.data.modified) {
+		const napOriginalStart = this.data.napOriginalStartDT.format('HH:mm')
+		const napOriginalEnd = this.data.napOriginalEndDT.format('HH:mm')
+
+		output += `\nOriginal Nap Start Time: ${napOriginalStart} GMT${homeTZOffset} / ${napStartDestTZ} GMT${destTZOffset}`
+		output += `\nOriginal Nap End Time: ${napOriginalEnd} GMT${homeTZOffset} / ${napEndDestTZ} GMT${destTZOffset}`
+	}
 
 	this.data.napStartDT.utcOffset(this.data.inputs.homeTimeZone)
 	this.data.napEndDT.utcOffset(this.data.inputs.homeTimeZone)
