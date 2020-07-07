@@ -187,7 +187,6 @@ class NapCalculator {
 		let napResultData = {}
 		napResultData.unallowedReasons = []
 		napResultData.modified = false
-		// napResultData.unallowedConditions = {}
 
 		napResultData.napUnallowed = false
 
@@ -340,62 +339,67 @@ class NapCalculator {
 			// 2a) A nap length of 1 hour must start at least 4 hours after flight day wake time and end at least 6 hours before arrival day bed time
 			if (
 				this.napLength === this.config.naps[0].length &&
-				(napResultData.napStartOffset < 4 || napResultData.napEndOffset < 6)
+				(napResultData.napStartOffset < this.config.napStartOffset ||
+					napResultData.napEndOffset < this.config.napEndOffset)
 			) {
 				napResultData.napUnallowed = true
 				napResultData.unallowedReasons.push(
-					`A nap length of ${this.config.naps[0].length} hour must start at least 4 hours after flight day wake time and end at least 6 hours before arrival day bed time`,
+					`A nap length of ${this.config.naps[0].length} hour must start at least ${this.config.napStartOffset} hours after flight day wake time and end at least ${this.config.napEndOffset} hours before arrival day bed time`,
 				)
 			}
 
 			// 2b) A nap length of 2 hours must start at least 6 hours after flight day wake time and end at least 8 hours before arrival day bed time
 			if (
 				this.napLength === this.config.naps[1].length &&
-				(napResultData.napStartOffset < 6 || napResultData.napEndOffset < 8)
+				(napResultData.napStartOffset < this.config.napStartOffset ||
+					napResultData.napEndOffset < this.config.napEndOffset)
 			) {
 				napResultData.napUnallowed = true
 				napResultData.unallowedReasons.push(
-					`A nap length of ${this.config.naps[1].length} hours must start at least 6 hours after flight day wake time and end at least 8 hours before arrival day bed time`,
+					`A nap length of ${this.config.naps[1].length} hours must start at least ${this.config.napStartOffset} hours after flight day wake time and end at least ${this.config.napEndOffset} hours before arrival day bed time`,
 				)
 			}
 
 			// 2c) A nap length of 4 hours must start at least 9 hours after flight day wake time and end at least 10 hours before arrival day bed time
 			if (
 				this.napLength === this.config.naps[2].length &&
-				(napResultData.napStartOffset < 9 || napResultData.napEndOffset < 10)
+				(napResultData.napStartOffset < this.config.napStartOffset ||
+					napResultData.napEndOffset < this.config.napEndOffset)
 			) {
 				napResultData.napUnallowed = true
 				napResultData.unallowedReasons.push(
-					`A nap length of ${this.config.naps[2].length} hours must start at least 9 hours after flight day wake time and end at least 10 hours before arrival day bed time`,
+					`A nap length of ${this.config.naps[2].length} hours must start at least ${this.config.napStartOffset} hours after flight day wake time and end at least ${this.config.napEndOffset} hours before arrival day bed time`,
 				)
 			}
 
 			// 2d) A nap length of 6 hours must start at least 12 hours after flight day wake time and end at least 12 hours before arrival day bed time
 			if (
 				this.napLength === this.config.naps[3].length &&
-				(napResultData.napStartOffset < 12 || napResultData.napEndOffset < 12)
+				(napResultData.napStartOffset < this.config.napStartOffset ||
+					napResultData.napEndOffset < this.config.napEndOffset)
 			) {
 				napResultData.napUnallowed = true
 				napResultData.unallowedReasons.push(
-					`A nap length of ${this.config.naps[3].length} hours must start at least 12 hours after flight day wake time and end at least 12 hours before arrival day bed time`,
+					`A nap length of ${this.config.naps[3].length} hours must start at least ${this.config.napStartOffset} hours after flight day wake time and end at least ${this.config.napEndOffset} hours before arrival day bed time`,
 				)
 			}
 
 			// 2e) A nap length of 8 hours must start at least 14 hours after flight day wake time and end at least 12 hours before arrival day bed time
 			if (
 				this.napLength === this.config.naps[4].length &&
-				(napResultData.napStartOffset < 14 || napResultData.napEndOffset < 12)
+				(napResultData.napStartOffset < this.config.napStartOffset ||
+					napResultData.napEndOffset < this.config.napEndOffset)
 			) {
 				napResultData.napUnallowed = true
 				napResultData.unallowedReasons.push(
-					`A nap length of ${this.config.naps[4].length} hours must start at least 14 hours after flight day wake time and end at least 12 hours before arrival day bed time`,
+					`A nap length of ${this.config.naps[4].length} hours must start at least ${this.config.napStartOffset} hours after flight day wake time and end at least ${this.config.napEndOffset} hours before arrival day bed time`,
 				)
 			}
 			// 3) The traveler must not have a time period of more than 20 hours without sleep
-		} else if (this.totalWakefulness > 20) {
+		} else if (this.totalWakefulness > this.config.maxWakefulness) {
 			napResultData.napUnallowed = true
 			napResultData.unallowedReasons.push(
-				'The traveler must not have a time period of more than 20 hours without sleep',
+				`The traveler must not have a time period of more than ${this.config.maxWakefulness} hours without sleep`,
 			)
 		}
 
