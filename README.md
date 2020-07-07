@@ -1,22 +1,27 @@
 # nap-time &middot; [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)]
 
 ## Introduction
+
 This project demonstrates a nap time calculation engine based on finding the most optimal time to take a nap when traveling. Various inputs are taking into consideration such as preferred wake up time and sleep time.
 
 ### Tech Stack
+
 This test project is 100% self contained JavaScript library that can be dropped into any environment that support JS integration
 
-* **NodeJS:** 12.x or higher support is needed
+- **NodeJS:** 12.x or higher support is needed
 
 ## Instalation
 
 ### Requirements
+
 - Any PC or MAC with NodeJS 12+ installed.
 - Git command line tool
 - There are no needs for local web servers or databases
 
 ### Repo Install
+
 The project can be cloned from GitHub for free with the following command
+
 ```
 git clone https://github.com/edster9/nap-time.git
 
@@ -25,12 +30,15 @@ yarn
 ```
 
 ### Tests
+
 You can execute the tests by running the following
+
 ```
 yarn run test
 ```
 
 ### Usage
+
 Minimal test example to run a simple calculation
 
 ```
@@ -73,6 +81,7 @@ main()
 ```
 
 ### Output
+
 The engine can output a human readable summary of nap start/stop time
 
 ```
@@ -82,8 +91,7 @@ Nap End Time: 02:45 GMT-7 / 10:45 GMT+1
 ```
 
 ### TODO
-- Move all remaining hard coded configuration values into the config module
+
 - Implement flight wake time modifier logic if nap time is un-allowed
 - Implement nap time reduction modifier logic if nap time is un-allowed
-- Better debug tracing output
 - Structured result data vs. string output
