@@ -76,15 +76,23 @@ class NapCalculator {
 			let napResultData = this._getNapResults()
 			let modified = false
 
+			// save the original times
+			const napOriginalStartDT = moment(napResultData.napStartDT)
+			const napOriginalEndDT = moment(napResultData.napEndDT)
+			// const usualOriginalWakeTimeDT = moment(this.data.modifiedUsualWakeTimeDT)
+
 			// if nap is not allowed try to move forward the nap time X hours a time
 			if (napResultData.napUnallowed) {
 				let napOffset = 0.0
 
 				while (napResultData.napUnallowed) {
 					// console.log(`OFFSET NAP +${this.config.napOffsetAttempt}`)
+
 					modified = true
 					napOffset += this.config.napOffsetAttempt
 					napResultData = this._getNapResults({ napOffset })
+
+					// console.log(`NAP PUSH FORWARD +${napResultData.napStartDT}`)
 
 					if (napOffset > napResultData.flightHours) {
 						break
@@ -98,17 +106,68 @@ class NapCalculator {
 
 				while (napResultData.napUnallowed) {
 					// console.log(`OFFSET NAP -${this.config.napOffsetAttempt}`)
+
 					modified = true
 					napOffset -= this.config.napOffsetAttempt
 					napResultData = this._getNapResults({ napOffset })
 
-					if (napOffset > napResultData.flightHours) {
+					// console.log(`NAP PUSH BACK +${napResultData.napStartDT}`)
+
+					if (napOffset < -napResultData.flightHours) {
 						break
 					}
 				}
 			}
 
+			// now try to move the flight day wake time to earlier by 1.5 hours
+			if (napResultData.napUnallowed) {
+				let wakeOffset = 0.0
+
+				while (napResultData.napUnallowed) {
+					// console.log(`OFFSET NAP -${this.config.napOffsetAttempt}`)
+
+					modified = true
+					wakeOffset -= this.config.napOffsetAttempt
+					napResultData = this._getNapResults({ wakeOffset })
+
+					// console.log(`WAKE TIME PUSH BACK -${this.data.usualWakeTimeDT}`)
+
+					if (wakeOffset < -1.5) {
+						break
+					}
+				}
+			}
+
+			// TODO: now try to move the flight day wake time to later by 1.5 hours
+			if (napResultData.napUnallowed) {
+				let wakeOffset = 0.0
+
+				while (napResultData.napUnallowed) {
+					// console.log(`OFFSET NAP -${this.config.napOffsetAttempt}`)
+
+					modified = true
+					wakeOffset += this.config.napOffsetAttempt
+					napResultData = this._getNapResults({ wakeOffset })
+
+					// console.log(`WAKE TIME PUSH BACK -${this.data.usualWakeTimeDT}`)
+
+					if (wakeOffset > 1.5) {
+						break
+					}
+				}
+			}
+
+			// TODO: now try to move the arrival day sleep time to later by 1.5 hours
+
+			// TODO: now try to move the arrival day sleep time to earlier by 1.5 hours
+
+			// TODO: finally try to make the nap length shorter
+
 			napResultData.modified = modified
+			napResultData.napOriginalStartDT = napOriginalStartDT
+			napResultData.napOriginalEndDT = napOriginalEndDT
+			napResultData.modifiedUsualWakeTimeDT = this.data.modifiedUsualWakeTimeDT
+
 			return new NapResult(napResultData)
 		} catch (error) {
 			console.error(error)
@@ -134,13 +193,22 @@ class NapCalculator {
 
 		// get the duration of the flight in hours
 		const flightDuration = this.data.flightArrivalTimeDT.diff(this.data.flightDepartTimeDT)
-		this.flightHours = (flightDuration / this.config.msDay).toFixed(1)
+		this.flightHours = (flightDuration / this.config.msDay).toFixed(2)
+
+		this.data.modifiedUsualWakeTimeDT = moment(this.data.usualWakeTimeDT)
+
+		if (modifiers) {
+			// modify the nap wake up time if a modifier is provided
+			if (modifiers.wakeOffset && modifiers.wakeOffset !== 0) {
+				this.data.modifiedUsualWakeTimeDT.add(modifiers.wakeOffset, 'h')
+			}
+		}
 
 		// get the earliest wake time
 		this.wakeupTimeDT =
-			this.data.flightDayWakeTimeDT < this.data.usualWakeTimeDT
+			this.data.flightDayWakeTimeDT < this.data.modifiedUsualWakeTimeDT
 				? this.data.flightDayWakeTimeDT
-				: this.data.usualWakeTimeDT
+				: this.data.modifiedUsualWakeTimeDT
 
 		// get the latest sleep time
 		this.bedTimeDT =
@@ -155,7 +223,7 @@ class NapCalculator {
 
 		// get the total wakefulness duration in hours
 		const totalWakefulnessDuration = this.bedTimeDT.diff(this.wakeupTimeDT)
-		this.totalWakefulness = (totalWakefulnessDuration / this.config.msDay).toFixed(1)
+		this.totalWakefulness = (totalWakefulnessDuration / this.config.msDay).toFixed(2)
 
 		// calculate nap length
 		this.napLength = 0
@@ -198,31 +266,38 @@ class NapCalculator {
 			napResultData.napEndDT = moment(napResultData.napStartDT)
 			napResultData.napEndDT.add(this.napLength, 'h')
 
-			// save the original times
-			napResultData.napOriginalStartDT = moment(napResultData.napStartDT)
-			napResultData.napOriginalEndDT = moment(napResultData.napEndDT)
-
-			// modify the nap if special modifier are present
 			if (modifiers) {
 				// modify the nap start stop if a modifier is provided
-				if (modifiers.napOffset > 0) {
+				if (modifiers.napOffset && modifiers.napOffset !== 0) {
 					napResultData.napStartDT.add(modifiers.napOffset, 'h')
 					napResultData.napEndDT.add(modifiers.napOffset, 'h')
-				} else {
-					napResultData.napStartDT.subtract(modifiers.napOffset, 'h')
-					napResultData.napEndDT.subtract(modifiers.napOffset, 'h')
 				}
 			}
 
 			// RUN ALL THE UNALLOWED VALIDATION //
 
 			// 1a) X hours before take off until X hour after take off
-			const napAfterTakeOffDuration = napResultData.napStartDT.diff(this.data.flightDepartTimeDT)
-			napResultData.napAfterTakeOff = (napAfterTakeOffDuration / this.config.msDay).toFixed(1)
+			const noBeforeTakeOffDT = moment(this.data.flightDepartTimeDT).subtract(
+				this.config.hoursAllowedBeforeTakeOff,
+				'h',
+			)
+			const noAfterTakeOffDT = moment(this.data.flightDepartTimeDT).add(
+				this.config.hoursAllowedAfterTakeOff,
+				'h',
+			)
+
+			const noBeforeLandingDT = moment(this.data.flightArrivalTimeDT).subtract(
+				this.config.hoursAllowedBeforeLanding,
+				'h',
+			)
+			const noAfterLandingDT = moment(this.data.flightArrivalTimeDT).add(
+				this.config.hoursAllowedAfterLanding,
+				'h',
+			)
 
 			if (
-				napResultData.napAfterTakeOff <= this.config.hoursAllowedAfterTakeOff &&
-				napResultData.napAfterTakeOff >= -this.config.hoursAllowedBeforeTakeOff
+				napResultData.napStartDT.isBetween(noBeforeTakeOffDT, noAfterTakeOffDT) ||
+				napResultData.napStartDT.isBetween(noBeforeLandingDT, noAfterLandingDT)
 			) {
 				napResultData.napUnallowed = true
 				napResultData.unallowedReasons.push(
@@ -230,18 +305,24 @@ class NapCalculator {
 				)
 			}
 
-			// 1b) X hour before landing until X hours after landing
-			const napBeforeArrivalOffDuration = this.data.flightArrivalTimeDT.diff(napResultData.napEndDT)
-			napResultData.napBeforeArrival = (napBeforeArrivalOffDuration / this.config.msDay).toFixed(1)
-
 			if (
-				napResultData.napBeforeArrival <= this.config.hoursAllowedBeforeLanding &&
-				napResultData.napBeforeArrival >= -this.config.hoursAllowedAfterLanding
+				napResultData.napEndDT.isBetween(noBeforeTakeOffDT, noAfterTakeOffDT) ||
+				napResultData.napEndDT.isBetween(noBeforeLandingDT, noAfterLandingDT)
 			) {
 				napResultData.napUnallowed = true
 				napResultData.unallowedReasons.push(
-					`${this.config.hoursAllowedBeforeLanding} hour before landing until ${this.config.hoursAllowedAfterLanding} hours after landing`,
+					`${this.config.hoursAllowedBeforeTakeOff} hours before take off until ${this.config.hoursAllowedAfterTakeOff} hour after take off`,
 				)
+			}
+
+			if (this.data.flightArrivalTimeDT.isBetween(napResultData.napStartDT, napResultData.napEndDT)) {
+				napResultData.napUnallowed = true
+				napResultData.unallowedReasons.push('Flight arrival time is between nap times')
+			}
+
+			if (this.data.flightDepartTimeDT.isBetween(napResultData.napStartDT, napResultData.napEndDT)) {
+				napResultData.napUnallowed = true
+				napResultData.unallowedReasons.push('Flight landing time is between nap times')
 			}
 
 			// 1c)
@@ -249,10 +330,10 @@ class NapCalculator {
 
 			// get the nap start and nap end offsets from the wake up and sleep times
 			const napStartOffsetDuration = napResultData.napStartDT.diff(this.wakeupTimeDT)
-			napResultData.napStartOffset = (napStartOffsetDuration / this.config.msDay).toFixed(1)
+			napResultData.napStartOffset = (napStartOffsetDuration / this.config.msDay).toFixed(2)
 
 			const napEndOffsetDuration = this.bedTimeDT.diff(napResultData.napEndDT)
-			napResultData.napEndOffset = (napEndOffsetDuration / this.config.msDay).toFixed(1)
+			napResultData.napEndOffset = (napEndOffsetDuration / this.config.msDay).toFixed(2)
 
 			// TODO: move all hard coded vars into the config module
 

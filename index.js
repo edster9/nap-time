@@ -27,8 +27,12 @@ function main() {
 		flightArrivalTime: '13:00',
 	})
 
-	result.printDetails(true)
+	// console out full debug details
+	// result.printDetails(true)
+
 	console.log('--------------')
+
+	// console out the nap result as a string
 	console.log(result.toString())
 }
 
