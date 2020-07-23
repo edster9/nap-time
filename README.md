@@ -10,7 +10,7 @@ This test project is 100% self contained JavaScript library that can be dropped 
 
 - **NodeJS:** 12.x or higher support is needed
 
-## Instalation
+## Installation
 
 ### Requirements
 
